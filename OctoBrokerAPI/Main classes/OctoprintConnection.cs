@@ -266,8 +266,6 @@ namespace Octobroker
           
             MultipartFormDataContent multipartContent = new MultipartFormDataContent();
             multipartContent.Add(new StringContent(fileData), "file", fileName);
-            multipartContent.Add(new StringContent("true"), "select");
-            multipartContent.Add(new StringContent("false"), "print");
             if (path != "") multipartContent.Add(new StringContent(path), "path");
             string responsebody = string.Empty;
             try

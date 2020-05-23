@@ -48,8 +48,6 @@ namespace OctoBrokerAPI.Controllers
 
                 PrusaSlicerBroker prusaSlicer = new PrusaSlicerBroker(filepath, fill, layer, support, outputpath, outputname);
 
-
-
                 octofile.SliceWithPrusa(prusaSlicer, octofile.LocalFilePath, octofile.SlicedFilePath);
 
                 var uploadResponse = await octofile.UploadToOctoprintAsync(octofile.SlicedFilePath, octoConnection);
