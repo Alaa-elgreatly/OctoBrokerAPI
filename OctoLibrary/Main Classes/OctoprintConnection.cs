@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Octobroker.Octo_Events;
+using SlicingBroker;
 
 namespace Octobroker
 
@@ -58,6 +61,29 @@ namespace Octobroker
         /// </summary>
         public OctoprintPrinterTracker Printers { get; set; }
 
+        
+        private string tempFolderPath;
+        /// <summary>
+        /// Holds the path of the local temp folder associated with this connection
+        /// </summary>
+        public  string TempFolderPath
+        {
+            get => GetTempFolderPath();
+        }
+
+
+        private string GetTempFolderPath()
+        {
+            if (string.IsNullOrEmpty(tempFolderPath))
+            {
+                var tempPath = Path.GetTempPath();
+                var directoryInfo = Directory.CreateDirectory(Path.Combine(tempPath, "Octobroker"));
+                tempFolderPath = directoryInfo.FullName + "\\";
+            }
+            return tempFolderPath;
+        }
+
+
         /// <summary>
         /// Creates a <see cref="T:OctoprintClient.OctoprintConnection"/> 
         /// </summary>
@@ -73,12 +99,17 @@ namespace Octobroker
             Printers = new OctoprintPrinterTracker(this);
             //source = new CancellationTokenSource();
             //token = source.Token;
+            ConnectEndPoint();
+        }
+
+        private async Task ConnectEndPoint()
+        {
             var canceltoken = CancellationToken.None;
             WebSocket = new ClientWebSocket();
-            WebSocket.ConnectAsync(new Uri("ws://" + EndPoint.Replace("https://", "").Replace("http://", "") + "sockjs/websocket"), canceltoken).GetAwaiter().GetResult();
-            //
-            //Correct format should be
-            // WebSocket.ConnectAsync(new Uri("ws://192.168.1.41:5000/sockjs/websocket"), canceltoken).GetAwaiter().GetResult();
+            WebSocket.ConnectAsync(
+                    new Uri("ws://" + EndPoint.Replace("https://", "").Replace("http://", "") + "sockjs/websocket"),
+                    canceltoken)
+                .GetAwaiter().GetResult();
         }
 
         /*
@@ -252,18 +283,18 @@ namespace Octobroker
             byte[] resp = webClient.UploadData(EndPoint + location, "POST", nfile);
             return strResponseValue;
         }
-        public async Task<string> PostMultipart(string fileData,string fileName, string location, string path = "")
+        public async Task<string> PostMultipart(string fileData, string fileName, string location, string path = "")
         {
 
-           
-            
-            var httpClient = new HttpClient();
-             var headers = httpClient.DefaultRequestHeaders;
 
-             headers.Add("X-Api-Key", ApiKey);
+
+            var httpClient = new HttpClient();
+            var headers = httpClient.DefaultRequestHeaders;
+
+            headers.Add("X-Api-Key", ApiKey);
             Uri requestUri = new Uri(EndPoint + location);
 
-          
+
             MultipartFormDataContent multipartContent = new MultipartFormDataContent();
             multipartContent.Add(new StringContent(fileData), "file", fileName);
             if (path != "") multipartContent.Add(new StringContent(path), "path");
@@ -296,20 +327,27 @@ namespace Octobroker
         /// <summary>
         /// Starts the Websocket Thread.
         /// </summary>
-        public void WebsocketStart()
+        public  void WebsocketStart()
         {
             if (!listening)
             {
                 listening = true;
-                Thread syncthread = new Thread(new ThreadStart(WebsocketSync));
+                //Thread syncthread = new Thread(new ThreadStart(WebsocketSync));
+                Thread syncthread = new Thread(async ()=> { await WebsocketSync(); OnWorkComplete(); });
                 syncthread.Start();
             }
         }
 
+        private void OnWorkComplete()
+        {
+            if (string.IsNullOrEmpty(tempFolderPath))
+                return;
+            
+            Directory.Delete(tempFolderPath, true);
+        }
 
 
-
-        private void WebsocketSync()
+        private async Task WebsocketSync()
         {
             string temporarystorage = "";
             var buffer = new byte[8096];
@@ -321,11 +359,7 @@ namespace Octobroker
                 received = WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation).GetAwaiter().GetResult();
 
                 string text = System.Text.Encoding.UTF8.GetString(buffer, 0, received.Count);
-                using (System.IO.StreamWriter file =
-                    new System.IO.StreamWriter(@"G:\Work\SiegenUniversity\Florian\my Application stuff\Logging response\Raw_received.Json", true))
-                {
-                    file.WriteLine(text);
-                }
+              
                 JObject obj = null;// = JObject(text);
                 //JObject.Parse(text);
                 try
@@ -342,61 +376,51 @@ namespace Octobroker
                     }
                     catch
                     {
-                        Debug.WriteLine("had to read something in more lines");
-                        using (System.IO.StreamWriter file =
-                            new System.IO.StreamWriter(@"G:\Work\SiegenUniversity\Florian\my Application stuff\Logging response\Raw_received.Json", true))
-                        {
-                            file.WriteLine("had to read something in more lines");
-                        }
+                       
                     }
                 }
 
-                if (obj != null)
+                if (obj == null) 
+                    continue;
+                JToken events = obj.Value<JToken>("event");
+
+                if (events == null)
+                    continue;
+
+                string eventName = events.Value<string>("type");
+
+                if (string.IsNullOrEmpty(eventName) || eventName != "FileAdded")
+                    continue;
+
+                JObject eventpayload = events.Value<JObject>("payload");
+                FileAddedEvent fileEvent = new FileAddedEvent(eventName, eventpayload);
+
+                if (fileEvent.OctoFile.Type == "stl")
                 {
-                    //JToken current = obj.Value<JToken>("current");
-                    //if (current != null)
-                    //{
+                    try
+                    {
+                        var downloadpath = GetTempFolderPath();
+                        
+                        PrusaSlicerBroker prusaSlicer = new PrusaSlicerBroker();
+
+                        fileEvent.OctoFile.DownloadAssociatedOnlineFile("local", downloadpath, this);
+                        //fileEvent.OctoFile.Slice(prusaSlicer, fileEvent.OctoFile.LocalFilePath,
+                        //    fileEvent.OctoFile.SlicedFilePath);
+                        await fileEvent.OctoFile.Slice(prusaSlicer,fileEvent.OctoFile.SlicedFilePath);
+                        var uploadResponse =await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,this);
 
 
-                    //JToken job = current.Value<JToken>("job");
-                    //if (job != null && Jobs.JobListens())
-                    //{
-                    //    OctoprintJobInfo jobInfo = new OctoprintJobInfo(job);
-                    //    Jobs.JobinfoHandlers += Jobs.GetUploadedFileInfo;
-
-                    //    Jobs.CallJob(jobInfo);
-                    //}
-                    //using (System.IO.StreamWriter file =
-                    //    new System.IO.StreamWriter(@"G:\Work\SiegenUniversity\Florian\my Application stuff\Logging response\current.txt", true))
-                    //{
-                    //    file.WriteLine(current);
-                    //}
-                    //using (System.IO.StreamWriter file =
-                    //    new System.IO.StreamWriter(@"G:\Work\SiegenUniversity\Florian\my Application stuff\Logging response\obj.txt", true))
-                    //{
-                    //    file.WriteLine(obj);
-                    //}
-                    //
-                    //}
-                    JToken events = obj.Value<JToken>("event");
-
-                    //if (events != null)
-                    //{
-                    //    string eventName = events.Value<string>("type");
-                    //    if (!string.IsNullOrEmpty(eventName) && eventName == "FileAdded")
-                    //    {
-                    //        JToken eventpayload = events.Value<JToken>("payload");
-
-                    //        FileAddedEvent fileEvent = new FileAddedEvent(eventName, eventpayload);
-
-                    //        var downloadpath = "G:\\Temp\\";
-
-                    //        if (fileEvent.Type == "stl")
-                                
-                    //            fileEvent.DownloadAndSliceAndUploadAssociatedFile("local", downloadpath, this);
-                            
-                    //    }
-                    //}
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                    //substituted with helper method  OnWorkcompleted  to delete everything at the end, to let files upload in the background
+                    finally
+                    {
+                        //Will figure out a way to handle the deletion upon the whole thread termination
+                        //Directory.Delete(tempFolderPath, true);
+                    }
                 }
 
             }
@@ -405,20 +429,21 @@ namespace Octobroker
 
         }
 
-        /// <summary>
-        /// The Websocket Thread function,runs and never stops
-        /// </summary>
+
+        /// before merging projects
         //private void WebsocketSync()
         //{
         //    string temporarystorage = "";
-        //    var buffer = new byte[4096];
+        //    var buffer = new byte[8096];
         //    CancellationToken cancellation = CancellationToken.None;
         //    //var awaiter = task.GetAwaiter();
         //    WebSocketReceiveResult received;// = WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation).GetAwaiter().GetResult();
         //    while (!WebSocket.CloseStatus.HasValue && listening)
         //    {
         //        received = WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation).GetAwaiter().GetResult();
+
         //        string text = System.Text.Encoding.UTF8.GetString(buffer, 0, received.Count);
+
         //        JObject obj = null;// = JObject(text);
         //        //JObject.Parse(text);
         //        try
@@ -435,98 +460,60 @@ namespace Octobroker
         //            }
         //            catch
         //            {
-        //                Debug.WriteLine("had to read something in more lines");
+
         //            }
         //        }
+
         //        if (obj != null)
         //        {
-        //            JToken current = obj.Value<JToken>("current");
 
-        //            if (current != null)
+        //            JToken events = obj.Value<JToken>("event");
+
+        //            if (events != null)
         //            {
-        //                JToken progress = current.Value<JToken>("progress");
-        //                if (progress != null && Jobs.ProgressListens())
+        //                string eventName = events.Value<string>("type");
+        //                if (!string.IsNullOrEmpty(eventName) && eventName == "FileAdded")
         //                {
-        //                    OctoprintJobProgress jobprogress = new OctoprintJobProgress(progress);
-        //                    Jobs.CallProgress(jobprogress);
-        //                }
+        //                    JToken eventpayload = events.Value<JToken>("payload");
 
-        //                JToken job = current.Value<JToken>("job");
-        //                if (job != null && Jobs.JobListens())
-        //                {
-        //                    OctoprintJobInfo jobInfo = new OctoprintJobInfo(job);
-        //                    Jobs.CallJob(jobInfo);
-        //                }
+        //                    FileAddedEvent fileEvent = new FileAddedEvent(eventName, eventpayload);
 
-        //                JToken printerinfo = current.Value<JToken>("state");
-        //                if (printerinfo != null && Printers.StateListens())
-        //                {
-        //                    OctoprintPrinterState opstate = new OctoprintPrinterState(printerinfo);
-        //                    Printers.CallPrinterState(opstate);
-        //                }
-
-
-        //                var temp = current.Value<float?>("currentZ") ?? 0;
-        //                var temp2 = current.Value<float?>("currentZ");
-
-        //                float? currentz = current.Value<float?>("currentZ");
-        //                if (currentz != null && Printers.ZListens())
-        //                {
-        //                    Printers.CallCurrentZ((float)currentz);
-        //                }
-        //                JToken offsets = current.Value<JToken>("offsets");
-        //                if (offsets != null && Printers.OffsetListens())
-        //                {
-        //                    List<int> offsetList = new List<int>();
-        //                    for (int i = 0; i < 256; i++)
+        //                    try
         //                    {
-        //                        int? tooloffset = offsets.Value<int?>("tool" + i);
-        //                        if (tooloffset != null)
+        //                        var tempPath = Path.GetTempPath();
+        //                        var directoryInfo = Directory.CreateDirectory(Path.Combine(tempPath, "Octobroker"));
+        //                        tempFolderPath = directoryInfo.FullName + "\\";
+        //                        var downloadpath = tempFolderPath;
+        //                        ////
+
+        //                        if (fileEvent.Type == "stl")
+        //                        //fileEvent.DownloadAndSliceAndUploadAssociatedFile("local", downloadpath, this);
         //                        {
-        //                            offsetList.Add((int)tooloffset);
-        //                        }
-        //                        else
-        //                        {
-        //                            break;
+        //                            fileEvent.DownloadAssociatedOnlineFile("local", downloadpath, this);
+        //                            fileEvent.SliceAndUpload(fileEvent.LocalFilePath, fileEvent.SlicedFilePath);
         //                        }
         //                    }
-        //                    int? offsetBed = offsets.Value<int?>("bed");
-        //                    if (offsetBed != null)
+        //                    catch (Exception e)
         //                    {
-        //                        offsetList.Add((int)offsetBed);
+        //                        Console.WriteLine(e.Message);
         //                    }
-        //                    Printers.CallOffset(offsetList);
+        //                    //substituted with helper method  OnWorkcompleted  to delete everything at the end, to let files upload in the background
+        //                    finally
+        //                    {
+        //                        Directory.Delete(tempFolderPath, true);
+        //                    }
+
+
         //                }
-
-        //                JToken temps = current.Value<JToken>("temps");
-        //                if (temps != null && Printers.TempsListens())
-        //                {
-        //                    List<OctoprintHistoricTemperatureState> tempList = new List<OctoprintHistoricTemperatureState>();
-        //                    for (int i = 0; i < 256; i++)
-        //                    {
-        //                        JToken tooltemp = offsets.Value<JToken>("tool" + i);
-        //                        if (tooltemp != null)
-        //                        {
-
-        //                            tempList.Add(new OctoprintHistoricTemperatureState(tooltemp));
-        //                        }
-        //                        else
-        //                        {
-        //                            break;
-        //                        }
-        //                    }
-        //                    JToken tempBed = offsets.Value<JToken>("bed");
-        //                    if (tempBed != null)
-        //                    {
-        //                        tempList.Add(new OctoprintHistoricTemperatureState(tempBed));
-        //                    }
-        //                    Printers.CallTemp(tempList);
-        //                }
-
         //            }
         //        }
 
         //    }
+
+
+
         //}
+
+
     }
 }

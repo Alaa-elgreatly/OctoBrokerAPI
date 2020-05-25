@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoBrokerAPI", "OctoBrokerAPI\OctoBrokerAPI.csproj", "{DA41A55D-3F91-4FA8-BA24-F3BE161F6E93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoLibrary", "OctoLibrary\OctoLibrary.csproj", "{C3508EEA-178C-4E06-9322-35361DCD9571}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlicingBroker", "SlicingBroker\SlicingBroker.csproj", "{699F76C3-E890-4D7A-8E1F-D37F999B9F6B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{DA41A55D-3F91-4FA8-BA24-F3BE161F6E93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA41A55D-3F91-4FA8-BA24-F3BE161F6E93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA41A55D-3F91-4FA8-BA24-F3BE161F6E93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3508EEA-178C-4E06-9322-35361DCD9571}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3508EEA-178C-4E06-9322-35361DCD9571}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3508EEA-178C-4E06-9322-35361DCD9571}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3508EEA-178C-4E06-9322-35361DCD9571}.Release|Any CPU.Build.0 = Release|Any CPU
+		{699F76C3-E890-4D7A-8E1F-D37F999B9F6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{699F76C3-E890-4D7A-8E1F-D37F999B9F6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{699F76C3-E890-4D7A-8E1F-D37F999B9F6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{699F76C3-E890-4D7A-8E1F-D37F999B9F6B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

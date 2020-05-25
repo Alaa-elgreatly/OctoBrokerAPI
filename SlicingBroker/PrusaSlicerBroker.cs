@@ -1,28 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Octobroker.Slicing_broker
+namespace SlicingBroker
 {
     /// <summary>
     /// class represents a file path to be sliced using prusa with the given specific parameters or prusa defaults
     /// </summary>
     public class PrusaSlicerBroker : ISlicerBroker
     {
-        public PrusaSlicerBroker()
-        {
+        #region Slicing Process 
+        private Process slicingProcess;
+        private TaskCompletionSource<bool> eventHandled;
+        #endregion
 
-        }
-        /// <summary>
-        /// temp for trial
-        /// </summary>
-        public PrusaSlicerBroker(string filePath, int fill = 20, double layer = 0.3, bool support = false, string outputpath = "", string outputname = "")
+        public PrusaSlicerBroker( int fill = 20, double layer = 0.3, bool support = false, string outputpath = "", string outputname = "")
         {
-            FilePath = filePath;
             FillDensity = fill;
             LayerHeightInMM = layer;
             SupportStructureEnabled = support;
@@ -41,37 +35,64 @@ namespace Octobroker.Slicing_broker
         public int FillDensity
         {
             get => fillDensity;
-            private set => fillDensity = ValidateFillDensity(value);
+            private set => fillDensity = SetFillDensity(value);
         }
 
         public string SlicerPath { get; } = @"G:\Work\SiegenUniversity\Florian\PrusaSlicer-2.1.1\prusa-slicer-console.exe";
 
-
-        private int ValidateFillDensity(int value)
+        private int SetFillDensity(int value)
         {
             if (value <= 0)
                 return 0;
             if (value >= 100)
                 return 100;
-            if (value % 5 == 0)
-                return value;
-
-            return 5 * (int)Math.Round(value / 5.0);
+            // commented because of Issue#7 should be deleted if proven that no future use
+            //if (value % 5 == 0)
+            //    return value;
+            //return 5 * (int)Math.Round(value / 5.0);
+            return value;
         }
 
-        public void Slice()
+        public async Task Slice()
         {
             // code to use Prusa Slicer CLI to slice the file with the given parameters 
 
             string command = GenerateCommandString();
 
-            var psi = new ProcessStartInfo(SlicerPath)
+            eventHandled = new TaskCompletionSource<bool>();
+            
+            //Process.Start(psi)?.WaitForExit(30000);
+            using (slicingProcess = new Process())
             {
-                Arguments =command,
-                UseShellExecute = true,
-                CreateNoWindow = true
-            };
-            Process.Start(psi)?.WaitForExit(30000);
+                try
+                {
+                    var psi = new ProcessStartInfo(SlicerPath)
+                    {
+                        Arguments = command,
+                        UseShellExecute = true,
+                        CreateNoWindow = true
+                    };
+
+                    slicingProcess.StartInfo = psi;
+                    slicingProcess.EnableRaisingEvents = true;
+                    slicingProcess.Exited += (sender, args) => SlicingFinished();
+                    slicingProcess.Start();
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
+                await Task.WhenAny(eventHandled.Task, Task.Delay(40000));
+            }
+
+
+        }
+
+        private void SlicingFinished()
+        {
+            eventHandled.TrySetResult(true);
         }
 
         private string GenerateCommandString()

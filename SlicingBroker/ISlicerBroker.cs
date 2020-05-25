@@ -1,4 +1,7 @@
-﻿namespace Octobroker.Slicing_broker
+﻿using System;
+using System.Threading.Tasks;
+
+namespace SlicingBroker
 {
     public interface ISlicerBroker
     {
@@ -8,7 +11,7 @@
         int FillDensity { get; }
         string SlicerPath { get; }
 
-        void Slice();
+        Task Slice();
 
     }
 }

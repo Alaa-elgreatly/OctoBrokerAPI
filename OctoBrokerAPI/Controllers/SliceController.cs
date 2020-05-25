@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Newtonsoft.Json.Linq;
-using Octobroker.Slicing_broker;
+using SlicingBroker;
 using OctoBrokerAPI.Octoprint_Services;
 
 namespace OctoBrokerAPI.Controllers
@@ -22,6 +22,7 @@ namespace OctoBrokerAPI.Controllers
                 $"in the query string you can specify and special slicing parameters you need with this format <br />" +
                 $"fill=x, layer=x, support=false/true, outputpath=s, outputname=s <br />" +
                 $"If nothing is specified in the query string then default parameters will be used <br />" +
+                $"An example: https://localhost:xxxxx/api/slice?fill=10&support=true and in the body put 'Test.stl'<br /> " +
                 $"The post request will: <br /> " +
                 $"1- Check Octoprint for the requested file <br />" +
                 $"2- Download that file if exists on the server <br />" +
@@ -34,21 +35,22 @@ namespace OctoBrokerAPI.Controllers
             };
         }
 
-        
+
 
         // POST: api/Slice
-        public async Task<string> Post([FromBody]string filepath, [FromUri] int fill = 20, [FromUri]double layer = 0.3, [FromUri] bool support = false, [FromUri]string outputpath = "", [FromUri] string outputname = "")
+        public async Task<string> Post([FromBody]string filepath, [FromUri] int fill = 20, [FromUri]double layer = 0.3, [FromUri] bool support = false)
         {
             var octoConnection = WebApiApplication.GetOctoConnection();
             var octofile = OctoPrintFileServices.CreateOctoFile(octoConnection, filepath);
             if (octofile != null)
             {
-                string downloadpath = "G:\\Temp\\";
+                string downloadpath = octoConnection.TempFolderPath;
+
                 octofile.DownloadAssociatedOnlineFile("local", downloadpath, octoConnection);
 
-                PrusaSlicerBroker prusaSlicer = new PrusaSlicerBroker(filepath, fill, layer, support, outputpath, outputname);
+                PrusaSlicerBroker prusaSlicer = new PrusaSlicerBroker(fill, layer, support);
 
-                octofile.SliceWithPrusa(prusaSlicer, octofile.LocalFilePath, octofile.SlicedFilePath);
+                await octofile.Slice(prusaSlicer, octofile.SlicedFilePath);
 
                 var uploadResponse = await octofile.UploadToOctoprintAsync(octofile.SlicedFilePath, octoConnection);
                 if (uploadResponse.Contains("done\":true"))

@@ -157,32 +157,10 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\SliceController.cs" />
-    <Compile Include="Octoprint Services\OctoPrintFileServices.cs" />
-    <Compile Include="Slicing broker\ISlicerBroker.cs" />
-    <Compile Include="Octo Events\OctoFile.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Main classes\OctoprintConnection.cs" />
-    <Compile Include="Main classes\OctoprintFileTracker.cs" />
-    <Compile Include="Main classes\OctoprintJobTracker.cs" />
-    <Compile Include="Main classes\OctoprintPosTracker.cs" />
-    <Compile Include="Main classes\OctoprintPrinterTracker.cs" />
-    <Compile Include="Octo Events\OctoprintEvent.cs" />
-    <Compile Include="Other classes\OctoprintFilamentInfo.cs" />
-    <Compile Include="Other classes\OctoprintFile.cs" />
-    <Compile Include="Other classes\OctoprintFolder.cs" />
-    <Compile Include="Other classes\OctoprintFullPrinterState.cs" />
-    <Compile Include="Other classes\OctoprintHistoricTemperatureState.cs" />
-    <Compile Include="Other classes\OctoprintJobInfo.cs" />
-    <Compile Include="Other classes\OctoprintJobProgress.cs" />
-    <Compile Include="Other classes\OctoprintPrinterFlags.cs" />
-    <Compile Include="Other classes\OctoprintPrinterState.cs" />
-    <Compile Include="Other classes\OctoprintTemperature.cs" />
-    <Compile Include="Other classes\OctoprintTemperatureState.cs" />
-    <Compile Include="Other classes\OctoprintTracker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Slicing broker\PrusaSlicerBroker.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\HelpPage\HelpPage.css" />
@@ -267,6 +245,16 @@
     <None Include="packages.config" />
     <Content Include="Scripts\jquery-3.4.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.4.1.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OctoLibrary\OctoLibrary.csproj">
+      <Project>{c3508eea-178c-4e06-9322-35361dcd9571}</Project>
+      <Name>OctoLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SlicingBroker\SlicingBroker.csproj">
+      <Project>{699f76c3-e890-4d7a-8e1f-d37f999b9f6b}</Project>
+      <Name>SlicingBroker</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

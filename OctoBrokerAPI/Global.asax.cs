@@ -13,6 +13,8 @@ namespace OctoBrokerAPI
 {
     public class WebApiApplication : System.Web.HttpApplication
     {
+        private static string Ip = "http://192.168.1.35:5000";
+        private static string API = "E3C06441F4834FD2B94E8C75FD3DF915";
         protected void Application_Start()
         {
             AreaRegistration.RegisterAllAreas();
@@ -24,9 +26,11 @@ namespace OctoBrokerAPI
         }
 
         private static OctoprintConnection octoconnection;
-        private void StartOctoprintConnection()
+        private static OctoprintConnection StartOctoprintConnection()
         {
-            octoconnection = new OctoprintConnection("http://192.168.1.38:5000", "E3C06441F4834FD2B94E8C75FD3DF915");
+             octoconnection = new OctoprintConnection(Ip, API);
+             octoconnection.WebsocketStart();
+             return octoconnection;
         }
 
         public static OctoprintConnection GetOctoConnection()
@@ -34,7 +38,7 @@ namespace OctoBrokerAPI
             if (octoconnection != null)
                 return octoconnection;
             else 
-                return octoconnection = new OctoprintConnection("http://192.168.1.38:5000", "E3C06441F4834FD2B94E8C75FD3DF915");
+                return StartOctoprintConnection();
         }
     }
 }
