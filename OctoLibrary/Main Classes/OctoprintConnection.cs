@@ -61,12 +61,17 @@ namespace Octobroker
         /// </summary>
         public OctoprintPrinterTracker Printers { get; set; }
 
-        
+        internal ISlicerBroker defaultSlicer { get; set; }
+
+        public void InitializeDefaultSlicer(string SlicerPath)
+        {
+            defaultSlicer = new PrusaSlicerBroker(SlicerPath);
+        }
         private string tempFolderPath;
         /// <summary>
         /// Holds the path of the local temp folder associated with this connection
         /// </summary>
-        public  string TempFolderPath
+        public string TempFolderPath
         {
             get => GetTempFolderPath();
         }
@@ -376,11 +381,11 @@ namespace Octobroker
                     }
                     catch
                     {
-                       
+
                     }
                 }
 
-                if (obj == null) 
+                if (obj == null)
                     continue;
                 JToken events = obj.Value<JToken>("event");
 
@@ -400,16 +405,19 @@ namespace Octobroker
                     try
                     {
                         var downloadpath = GetTempFolderPath();
-                        
-                        PrusaSlicerBroker prusaSlicer = new PrusaSlicerBroker();
+
 
                         fileEvent.OctoFile.DownloadAssociatedOnlineFile("local", downloadpath, this);
                         //fileEvent.OctoFile.Slice(prusaSlicer, fileEvent.OctoFile.LocalFilePath,
                         //    fileEvent.OctoFile.SlicedFilePath);
-                        await fileEvent.OctoFile.Slice(prusaSlicer,fileEvent.OctoFile.SlicedFilePath);
-                        var uploadResponse =await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,this);
 
-
+                        if (defaultSlicer != null)
+                        {
+                            await fileEvent.OctoFile.Slice(defaultSlicer, fileEvent.OctoFile.SlicedFilePath);
+                            var uploadResponse =
+                                await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,
+                                    this);
+                        }
                     }
                     catch (Exception e)
                     {

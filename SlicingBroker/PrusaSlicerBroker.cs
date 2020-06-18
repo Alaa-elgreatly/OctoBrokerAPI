@@ -14,19 +14,19 @@ namespace SlicingBroker
         private Process slicingProcess;
         private TaskCompletionSource<bool> eventHandled;
         #endregion
-
-        public PrusaSlicerBroker( int fill = 20, double layer = 0.3, bool support = false, string outputpath = "", string outputname = "")
+        public PrusaSlicerBroker(string localSlicerPath, int fill = 20, double layer = 0.3, bool support = false, string outputpath = "", string outputname = "")
         {
             FillDensity = fill;
             LayerHeightInMM = layer;
             SupportStructureEnabled = support;
             OutputPath = outputpath;
             OutputName = outputname;
+            SlicerPath = localSlicerPath;
         }
+        public string SlicerPath { get;  }
         private int fillDensity = 20;
         public string FilePath { get;  set; }
         public double LayerHeightInMM { get; private set; } = 0.3;
-
         public string OutputPath { get; set; }
         public string OutputName { get; set; }
 
@@ -38,8 +38,8 @@ namespace SlicingBroker
             private set => fillDensity = SetFillDensity(value);
         }
 
-        public string SlicerPath { get; } = @"G:\Work\SiegenUniversity\Florian\PrusaSlicer-2.1.1\prusa-slicer-console.exe";
-
+        //public string SlicerPath { get; } = @"G:\Work\SiegenUniversity\Florian\PrusaSlicer-2.1.1\prusa-slicer-console.exe";
+            
         private int SetFillDensity(int value)
         {
             if (value <= 0)

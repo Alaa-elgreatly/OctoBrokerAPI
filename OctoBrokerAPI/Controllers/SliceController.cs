@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -14,6 +15,8 @@ namespace OctoBrokerAPI.Controllers
 {
     public class SliceController : ApiController
     {
+
+        private string prusaSlicerPath = ConfigurationManager.AppSettings["LocalPrusaSlicerPath"];
         // GET: api/Slice
         public HttpResponseMessage Get()
         {
@@ -48,7 +51,9 @@ namespace OctoBrokerAPI.Controllers
 
                 octofile.DownloadAssociatedOnlineFile("local", downloadpath, octoConnection);
 
-                PrusaSlicerBroker prusaSlicer = new PrusaSlicerBroker(fill, layer, support);
+                // Change to be a global class instance and just set the slicing variables with every request
+                // would be better not to create a new instance with each request
+                PrusaSlicerBroker prusaSlicer = new PrusaSlicerBroker(prusaSlicerPath, fill, layer, support);
 
                 await octofile.Slice(prusaSlicer, octofile.SlicedFilePath);
 

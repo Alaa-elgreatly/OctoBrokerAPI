@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Drawing.Text;
 using System.Linq;
 using System.Web;
@@ -13,8 +14,10 @@ namespace OctoBrokerAPI
 {
     public class WebApiApplication : System.Web.HttpApplication
     {
-        private static string Ip = "http://192.168.1.35:5000";
-        private static string API = "E3C06441F4834FD2B94E8C75FD3DF915";
+        private static string ip = ConfigurationManager.AppSettings["OctoprintIP"];
+        private static string api = ConfigurationManager.AppSettings["OctoprintAPI"];
+        private static string prusaSlicerPath = ConfigurationManager.AppSettings["LocalPrusaSlicerPath"];
+
         protected void Application_Start()
         {
             AreaRegistration.RegisterAllAreas();
@@ -28,7 +31,8 @@ namespace OctoBrokerAPI
         private static OctoprintConnection octoconnection;
         private static OctoprintConnection StartOctoprintConnection()
         {
-             octoconnection = new OctoprintConnection(Ip, API);
+             octoconnection = new OctoprintConnection(ip, api);
+             octoconnection.InitializeDefaultSlicer(prusaSlicerPath);
              octoconnection.WebsocketStart();
              return octoconnection;
         }
