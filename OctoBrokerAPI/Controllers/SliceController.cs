@@ -43,11 +43,11 @@ namespace OctoBrokerAPI.Controllers
         // POST: api/Slice
         public async Task<string> Post([FromBody]string filepath, [FromUri] int fill = 20, [FromUri]double layer = 0.3, [FromUri] bool support = false)
         {
-            var octoConnection = WebApiApplication.GetOctoConnection();
+            var octoConnection = await WebApiApplication.GetOctoConnection();
             var octofile = OctoPrintFileServices.CreateOctoFile(octoConnection, filepath);
             if (octofile != null)
             {
-                string downloadpath = octoConnection.TempFolderPath;
+                string downloadpath = octoConnection.ApplicationFolderPath;
 
                 octofile.DownloadAssociatedOnlineFile("local", downloadpath, octoConnection);
 

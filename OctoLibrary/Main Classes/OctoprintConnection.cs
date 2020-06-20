@@ -67,25 +67,26 @@ namespace Octobroker
         {
             defaultSlicer = new PrusaSlicerBroker(SlicerPath);
         }
-        private string tempFolderPath;
+        private string applicationFolderPath;
         /// <summary>
         /// Holds the path of the local temp folder associated with this connection
         /// </summary>
-        public string TempFolderPath
+        public string ApplicationFolderPath
         {
-            get => GetTempFolderPath();
+            get => GetApplicationFolderPath();
         }
 
 
-        private string GetTempFolderPath()
+        private string GetApplicationFolderPath()
         {
-            if (string.IsNullOrEmpty(tempFolderPath))
+            if (string.IsNullOrEmpty(applicationFolderPath))
             {
-                var tempPath = Path.GetTempPath();
-                var directoryInfo = Directory.CreateDirectory(Path.Combine(tempPath, "Octobroker"));
-                tempFolderPath = directoryInfo.FullName + "\\";
+                //var tempPath = Path.GetTempPath();
+                var appPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var directoryInfo = Directory.CreateDirectory(Path.Combine(appPath, "Octobroker"));
+                applicationFolderPath = directoryInfo.FullName + "\\";
             }
-            return tempFolderPath;
+            return applicationFolderPath;
         }
 
 
@@ -104,17 +105,15 @@ namespace Octobroker
             Printers = new OctoprintPrinterTracker(this);
             //source = new CancellationTokenSource();
             //token = source.Token;
-            ConnectEndPoint();
         }
 
         private async Task ConnectEndPoint()
         {
             var canceltoken = CancellationToken.None;
             WebSocket = new ClientWebSocket();
-            WebSocket.ConnectAsync(
-                    new Uri("ws://" + EndPoint.Replace("https://", "").Replace("http://", "") + "sockjs/websocket"),
-                    canceltoken)
-                .GetAwaiter().GetResult();
+            await WebSocket.ConnectAsync(
+                new Uri("ws://" + EndPoint.Replace("https://", "").Replace("http://", "") + "sockjs/websocket"),
+                canceltoken);
         }
 
         /*
@@ -332,24 +331,25 @@ namespace Octobroker
         /// <summary>
         /// Starts the Websocket Thread.
         /// </summary>
-        public  void WebsocketStart()
+        public async Task WebsocketStart()
         {
             if (!listening)
             {
                 listening = true;
+                await ConnectEndPoint();
                 //Thread syncthread = new Thread(new ThreadStart(WebsocketSync));
-                Thread syncthread = new Thread(async ()=> { await WebsocketSync(); OnWorkComplete(); });
-                syncthread.Start();
+                //syncthread.Start();
+                await Task.Run(WebsocketSync);
             }
         }
 
-        private void OnWorkComplete()
-        {
-            if (string.IsNullOrEmpty(tempFolderPath))
-                return;
+        //private void OnWorkComplete()
+        //{
+        //    if (string.IsNullOrEmpty(tempFolderPath))
+        //        return;
             
-            Directory.Delete(tempFolderPath, true);
-        }
+        //    Directory.Delete(tempFolderPath, true);
+        //}
 
 
         private async Task WebsocketSync()
@@ -404,7 +404,7 @@ namespace Octobroker
                 {
                     try
                     {
-                        var downloadpath = GetTempFolderPath();
+                        var downloadpath = GetApplicationFolderPath();
 
 
                         fileEvent.OctoFile.DownloadAssociatedOnlineFile("local", downloadpath, this);
