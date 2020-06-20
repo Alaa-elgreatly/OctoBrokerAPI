@@ -13,6 +13,7 @@ namespace SlicingBroker
         #region Slicing Process 
         private Process slicingProcess;
         private TaskCompletionSource<bool> eventHandled;
+        public event EventHandler<FileSlicedArgs> FileSliced;
         #endregion
         public PrusaSlicerBroker(string localSlicerPath, int fill = 20, double layer = 0.3, bool support = false, string outputpath = "", string outputname = "")
         {
@@ -25,7 +26,7 @@ namespace SlicingBroker
         }
         public string SlicerPath { get;  }
         private int fillDensity = 20;
-        public string FilePath { get;  set; }
+        //public string FilePath { get;  set; }
         public double LayerHeightInMM { get; private set; } = 0.3;
         public string OutputPath { get; set; }
         public string OutputName { get; set; }
@@ -38,7 +39,6 @@ namespace SlicingBroker
             private set => fillDensity = SetFillDensity(value);
         }
 
-        //public string SlicerPath { get; } = @"G:\Work\SiegenUniversity\Florian\PrusaSlicer-2.1.1\prusa-slicer-console.exe";
             
         private int SetFillDensity(int value)
         {
@@ -53,11 +53,17 @@ namespace SlicingBroker
             return value;
         }
 
-        public async Task Slice()
+        public async Task Slice(string localFilePath ,string outputPath = "")
         {
-            // code to use Prusa Slicer CLI to slice the file with the given parameters 
+            //
+            //if the path of the output gcode file is specified then slice and put it in that path (must be specified without .gcode extension)
+            if (!string.IsNullOrEmpty(outputPath))
+                this.OutputPath = outputPath;
+            //if there is no specific slicing path, by default it is sliced in the same place of the stl 
 
-            string command = GenerateCommandString();
+
+            // code to use Prusa Slicer CLI to slice the file with the given parameters 
+            string command = GenerateCommandString(localFilePath);
 
             eventHandled = new TaskCompletionSource<bool>();
             
@@ -74,8 +80,9 @@ namespace SlicingBroker
                     };
 
                     slicingProcess.StartInfo = psi;
-                    slicingProcess.EnableRaisingEvents = true;
-                    slicingProcess.Exited += (sender, args) => SlicingFinished();
+                    slicingProcess.EnableRaisingEvents = true; 
+                    // when slicing complete send the slicing path to the function: if there is not specific output path then send the local file path
+                    slicingProcess.Exited += (sender, args) => SlicingFinished((string.IsNullOrEmpty(OutputPath))? localFilePath:OutputPath);
                     slicingProcess.Start();
 
                 }
@@ -90,12 +97,14 @@ namespace SlicingBroker
 
         }
 
-        private void SlicingFinished()
+        private void SlicingFinished(string slicedOrLocalFilePath)
         {
             eventHandled.TrySetResult(true);
+            string slicedFilePath = System.IO.Path.ChangeExtension(slicedOrLocalFilePath, ".gcode");
+            FileSliced?.Invoke(this, new FileSlicedArgs(slicedFilePath));
         }
 
-        private string GenerateCommandString()
+        private string GenerateCommandString(string filePath)
         {
             StringBuilder commandBuilder = new StringBuilder();
             string fillDensityWithPrusaFormat = GetPrusaFormatFillDensity();
@@ -108,7 +117,7 @@ namespace SlicingBroker
             commandBuilder.Append("-g");
             commandBuilder.Append(" ");
             //add model file path
-            commandBuilder.Append(FilePath);
+            commandBuilder.Append(filePath);
             commandBuilder.Append(" ");
             //add Layer height 
             commandBuilder.Append("--layer-height=");

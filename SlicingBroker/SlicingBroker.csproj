@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileSlicedArgs.cs" />
     <Compile Include="ISlicerBroker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PrusaSlicerBroker.cs" />

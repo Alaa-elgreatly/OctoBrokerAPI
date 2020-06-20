@@ -23,7 +23,6 @@ namespace Octobroker.Octo_Events
         public string Type { get; private set; }
         public bool IsFileAddedEvent { get; set; }
         public event EventHandler<FileReadyForSlicingArgs> FileReadyForSlicing;
-        public event EventHandler<FileSlicedArgs> FileSliced;
 
         public OctoFile(JObject payload, bool isFileAddedEvent = false)
         {
@@ -125,11 +124,15 @@ namespace Octobroker.Octo_Events
 
         private void SetDownloadedFileLocalInformation(string downloadPath)
         {
-            // this.Connection = connection;
             LocalFilePath = downloadPath + FileName;
-            SlicedFilePath = downloadPath + FileName;
-            SlicedFilePath = System.IO.Path.ChangeExtension(LocalFilePath, null);
             FileReadyForSlicing?.Invoke(this, new FileReadyForSlicingArgs(LocalFilePath));
+        }
+        /// <summary>
+        /// This function should be called right after the associated Octofile has been sliced to add the sliced file path to the octofile
+        /// </summary>
+        public void SetSlicedInPlaceFileInfo()
+        {
+            SlicedFilePath = System.IO.Path.ChangeExtension(LocalFilePath, ".gcode");
         }
 
         //private void SliceAndUpload(string OutputFilePath)
@@ -138,29 +141,29 @@ namespace Octobroker.Octo_Events
         //    UploadToOctoprintAsync(SlicedFilePath, Connection);
         //}
 
-        private async Task SliceWithPrusa(PrusaSlicerBroker prusaSlicer, string OutputPath = "")
-        {
+        //private async Task SliceWithPrusa(PrusaSlicerBroker prusaSlicer, string OutputPath = "")
+        //{
 
-            // the stl file path to be sliced
-            prusaSlicer.FilePath = LocalFilePath;
-            //if the path of the output gcode file is specified then slice and put it in that path (must be specified without .gcode extension)
-            if (OutputPath != null)
-                prusaSlicer.OutputPath = OutputPath;
-            // if there is no specific slicing path, slice in the same place of the stl but remove the .stl first of the sliced path then append .gcode 
-            else
-                OutputPath = System.IO.Path.ChangeExtension(LocalFilePath, null);
-            await prusaSlicer.Slice();
-            this.SlicedFilePath = OutputPath + ".gcode";
-            FileSliced?.Invoke(this, new FileSlicedArgs(SlicedFilePath));
-        }
+        //    // the stl file path to be sliced
+        //    prusaSlicer.FilePath = LocalFilePath;
+        //    //if the path of the output gcode file is specified then slice and put it in that path (must be specified without .gcode extension)
+        //    if (OutputPath != null)
+        //        prusaSlicer.OutputPath = OutputPath;
+        //    // if there is no specific slicing path, slice in the same place of the stl but remove the .stl first of the sliced path then append .gcode 
+        //    else
+        //        OutputPath = System.IO.Path.ChangeExtension(LocalFilePath, null);
+        //    await prusaSlicer.Slice();
+        //    this.SlicedFilePath = OutputPath + ".gcode";
+        //    FileSliced?.Invoke(this, new FileSlicedArgs(SlicedFilePath));
+        //}
 
-        public async Task Slice(ISlicerBroker slicer, string OutputPath = "")
-        {
-            PrusaSlicerBroker prusaSlicer = (PrusaSlicerBroker)slicer;
-            if (prusaSlicer == null)
-                return;
-            await SliceWithPrusa(prusaSlicer, OutputPath);
-        }
+        //public async Task Slice(ISlicerBroker slicer, string OutputPath = "")
+        //{
+        //    PrusaSlicerBroker prusaSlicer = (PrusaSlicerBroker)slicer;
+        //    if (prusaSlicer == null)
+        //        return;
+        //    await SliceWithPrusa(prusaSlicer, OutputPath);
+        //}
 
         //public async Task UploadToOctoprintAsync(string SlicedFilePath,OctoprintConnection Connection)
         //{
@@ -201,15 +204,7 @@ namespace Octobroker.Octo_Events
 
     }
 
-    public class FileSlicedArgs : EventArgs
-    {
-        public FileSlicedArgs(string filePath)
-        {
-            SlicedFilePath = filePath;
-        }
 
-        public string SlicedFilePath { get; set; }
-    }
 
     public class FileReadyForSlicingArgs : EventArgs
     {

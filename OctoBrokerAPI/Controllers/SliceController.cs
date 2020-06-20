@@ -55,7 +55,10 @@ namespace OctoBrokerAPI.Controllers
                 // would be better not to create a new instance with each request
                 PrusaSlicerBroker prusaSlicer = new PrusaSlicerBroker(prusaSlicerPath, fill, layer, support);
 
-                await octofile.Slice(prusaSlicer, octofile.SlicedFilePath);
+                //await octofile.Slice(prusaSlicer, octofile.SlicedFilePath);
+
+                await prusaSlicer.Slice(octofile.LocalFilePath);
+                octofile.SetSlicedInPlaceFileInfo();
 
                 var uploadResponse = await octofile.UploadToOctoprintAsync(octofile.SlicedFilePath, octoConnection);
                 if (uploadResponse.Contains("done\":true"))

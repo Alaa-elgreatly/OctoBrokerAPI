@@ -5,13 +5,13 @@ namespace SlicingBroker
 {
     public interface ISlicerBroker
     {
-        string FilePath { get; set; }
+        //string FilePath { get; set; }
         double LayerHeightInMM { get; }
         bool SupportStructureEnabled { get; }
         int FillDensity { get; }
         string SlicerPath { get; }
 
-        Task Slice();
+        Task Slice(string localFilePath, string outputPath="");
 
     }
 }

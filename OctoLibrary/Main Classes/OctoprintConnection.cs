@@ -413,7 +413,10 @@ namespace Octobroker
 
                         if (defaultSlicer != null)
                         {
-                            await fileEvent.OctoFile.Slice(defaultSlicer, fileEvent.OctoFile.SlicedFilePath);
+                            //await fileEvent.OctoFile.Slice(defaultSlicer, fileEvent.OctoFile.SlicedFilePath);
+
+                            await defaultSlicer.Slice(fileEvent.OctoFile.LocalFilePath);
+                            fileEvent.OctoFile.SetSlicedInPlaceFileInfo();
                             var uploadResponse =
                                 await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,
                                     this);
