@@ -9,15 +9,8 @@ namespace Octobroker.Octo_Events
 {
     public interface IOctoprintEvent
     {
-        //public OctoprintEvent(String name, JToken payload)
-        //{
-        //    this.Name = name;
-        //    this.Payload = payload;
-        //}
-
-         string Name { get; }
+        string Name { get; }
          JObject Payload { get;  set; }
          JObject GetGenericPayload();
-      
     }
 }

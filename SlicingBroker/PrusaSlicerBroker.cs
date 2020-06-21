@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace SlicingBroker
 {
     /// <summary>
-    /// class represents a file path to be sliced using prusa with the given specific parameters or prusa defaults
+    /// class represents a connection with local Prusa slicer installed, used to slice a file given its path, with the given slicing parameters or the default ones
     /// </summary>
     public class PrusaSlicerBroker : ISlicerBroker
     {

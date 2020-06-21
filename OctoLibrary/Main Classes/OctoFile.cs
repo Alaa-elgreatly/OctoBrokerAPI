@@ -60,34 +60,6 @@ namespace Octobroker.Octo_Events
             return new OctoprintFile() { Name = FileName, Path = this.Path, Type = this.Type };
         }
 
-        //private void DownloadAndSliceAndUploadAssociatedFile(string location, string DownloadPath, OctoprintConnection Connection)
-        //{
-        //    JObject info = Connection.Files.GetFileInfo(location, this.Path);
-        //    JToken refs = info.Value<JToken>("refs");
-        //    string downloadLink = refs.Value<string>("download");
-        //    this.Connection = Connection;
-
-        //    using (WebClient myWebClient = new WebClient())
-        //    {
-        //        try
-        //        {
-        //            //myWebClient.DownloadFileAsync(new Uri(downloadLink), DownloadPath);
-        //            myWebClient.DownloadFile(new Uri(downloadLink), DownloadPath + FileName);
-        //            LocalFilePath = DownloadPath + FileName;
-        //            SlicedFilePath = DownloadPath + FileName;
-        //            SlicedFilePath = System.IO.Path.ChangeExtension(LocalFilePath, null);
-        //            FileReadyForSlicing?.Invoke(this, new FileReadyForSlicingArgs(LocalFilePath));
-        //            SliceAndUpload(SlicedFilePath);
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            var msg = e.Message;
-        //        }
-
-        //    }
-
-        //}
-
         public  void DownloadAssociatedOnlineFile(string location, string downloadPath, OctoprintConnection connection)
         {
             var currentFilePath = System.IO.Path.Combine(downloadPath , FileName);
@@ -130,44 +102,6 @@ namespace Octobroker.Octo_Events
         {
             SlicedFilePath = System.IO.Path.ChangeExtension(LocalFilePath, ".gcode");
         }
-
-        //private void SliceAndUpload(string OutputFilePath)
-        //{
-        //    SliceWithPrusa(new PrusaSlicerBroker(), OutputFilePath);
-        //    UploadToOctoprintAsync(SlicedFilePath, Connection);
-        //}
-
-        //private async Task SliceWithPrusa(PrusaSlicerBroker prusaSlicer, string OutputPath = "")
-        //{
-
-        //    // the stl file path to be sliced
-        //    prusaSlicer.FilePath = LocalFilePath;
-        //    //if the path of the output gcode file is specified then slice and put it in that path (must be specified without .gcode extension)
-        //    if (OutputPath != null)
-        //        prusaSlicer.OutputPath = OutputPath;
-        //    // if there is no specific slicing path, slice in the same place of the stl but remove the .stl first of the sliced path then append .gcode 
-        //    else
-        //        OutputPath = System.IO.Path.ChangeExtension(LocalFilePath, null);
-        //    await prusaSlicer.Slice();
-        //    this.SlicedFilePath = OutputPath + ".gcode";
-        //    FileSliced?.Invoke(this, new FileSlicedArgs(SlicedFilePath));
-        //}
-
-        //public async Task Slice(ISlicerBroker slicer, string OutputPath = "")
-        //{
-        //    PrusaSlicerBroker prusaSlicer = (PrusaSlicerBroker)slicer;
-        //    if (prusaSlicer == null)
-        //        return;
-        //    await SliceWithPrusa(prusaSlicer, OutputPath);
-        //}
-
-        //public async Task UploadToOctoprintAsync(string SlicedFilePath,OctoprintConnection Connection)
-        //{
-        //    if (Connection==null)
-        //        return;
-        //    string uploadResponse = await  Connection.Files.UploadFile(SlicedFilePath, SlicedFileName, "");
-        //}
-
 
         public async Task<string> UploadToOctoprintAsync(string SlicedFilePath, OctoprintConnection Connection)
         {

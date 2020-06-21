@@ -290,9 +290,6 @@ namespace Octobroker
         }
         public async Task<string> PostMultipartAsync(string fileData, string fileName, string location, string path = "")
         {
-
-
-
             var httpClient = new HttpClient();
             var headers = httpClient.DefaultRequestHeaders;
 
@@ -343,14 +340,6 @@ namespace Octobroker
                 await Task.Run(WebsocketSyncAsync);
             }
         }
-
-        //private void OnWorkComplete()
-        //{
-        //    if (string.IsNullOrEmpty(tempFolderPath))
-        //        return;
-            
-        //    Directory.Delete(tempFolderPath, true);
-        //}
 
 
         private async Task WebsocketSyncAsync()
@@ -409,15 +398,12 @@ namespace Octobroker
 
 
                         fileEvent.OctoFile.DownloadAssociatedOnlineFile("local", downloadpath, this);
-                        //fileEvent.OctoFile.Slice(prusaSlicer, fileEvent.OctoFile.LocalFilePath,
-                        //    fileEvent.OctoFile.SlicedFilePath);
-
+                       
                         if (defaultSlicer != null)
                         {
-                            //await fileEvent.OctoFile.Slice(defaultSlicer, fileEvent.OctoFile.SlicedFilePath);
-
                             await defaultSlicer.SliceAsync(fileEvent.OctoFile.LocalFilePath);
                             fileEvent.OctoFile.SetSlicedInPlaceFileInfo();
+
                             var uploadResponse =
                                 await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,
                                     this);
@@ -427,12 +413,7 @@ namespace Octobroker
                     {
                         Console.WriteLine(e.Message);
                     }
-                    //substituted with helper method  OnWorkcompleted  to delete everything at the end, to let files upload in the background
-                    finally
-                    {
-                        //Will figure out a way to handle the deletion upon the whole thread termination
-                        //Directory.Delete(tempFolderPath, true);
-                    }
+                    
                 }
 
             }
@@ -441,90 +422,6 @@ namespace Octobroker
 
         }
 
-
-        /// before merging projects
-        //private void WebsocketSync()
-        //{
-        //    string temporarystorage = "";
-        //    var buffer = new byte[8096];
-        //    CancellationToken cancellation = CancellationToken.None;
-        //    //var awaiter = task.GetAwaiter();
-        //    WebSocketReceiveResult received;// = WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation).GetAwaiter().GetResult();
-        //    while (!WebSocket.CloseStatus.HasValue && listening)
-        //    {
-        //        received = WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation).GetAwaiter().GetResult();
-
-        //        string text = System.Text.Encoding.UTF8.GetString(buffer, 0, received.Count);
-
-        //        JObject obj = null;// = JObject(text);
-        //        //JObject.Parse(text);
-        //        try
-        //        {
-        //            obj = JObject.Parse(text);
-        //        }
-        //        catch
-        //        {
-        //            temporarystorage += text;
-        //            try
-        //            {
-        //                obj = JObject.Parse(temporarystorage);
-        //                temporarystorage = "";
-        //            }
-        //            catch
-        //            {
-
-        //            }
-        //        }
-
-        //        if (obj != null)
-        //        {
-
-        //            JToken events = obj.Value<JToken>("event");
-
-        //            if (events != null)
-        //            {
-        //                string eventName = events.Value<string>("type");
-        //                if (!string.IsNullOrEmpty(eventName) && eventName == "FileAdded")
-        //                {
-        //                    JToken eventpayload = events.Value<JToken>("payload");
-
-        //                    FileAddedEvent fileEvent = new FileAddedEvent(eventName, eventpayload);
-
-        //                    try
-        //                    {
-        //                        var tempPath = Path.GetTempPath();
-        //                        var directoryInfo = Directory.CreateDirectory(Path.Combine(tempPath, "Octobroker"));
-        //                        tempFolderPath = directoryInfo.FullName + "\\";
-        //                        var downloadpath = tempFolderPath;
-        //                        ////
-
-        //                        if (fileEvent.Type == "stl")
-        //                        //fileEvent.DownloadAndSliceAndUploadAssociatedFile("local", downloadpath, this);
-        //                        {
-        //                            fileEvent.DownloadAssociatedOnlineFile("local", downloadpath, this);
-        //                            fileEvent.SliceAndUpload(fileEvent.LocalFilePath, fileEvent.SlicedFilePath);
-        //                        }
-        //                    }
-        //                    catch (Exception e)
-        //                    {
-        //                        Console.WriteLine(e.Message);
-        //                    }
-        //                    //substituted with helper method  OnWorkcompleted  to delete everything at the end, to let files upload in the background
-        //                    finally
-        //                    {
-        //                        Directory.Delete(tempFolderPath, true);
-        //                    }
-
-
-        //                }
-        //            }
-        //        }
-
-        //    }
-
-
-
-        //}
 
 
     }

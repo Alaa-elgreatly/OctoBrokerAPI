@@ -5,7 +5,6 @@ namespace SlicingBroker
 {
     public interface ISlicerBroker
     {
-        //string FilePath { get; set; }
         double LayerHeightInMM { get; }
         bool SupportStructureEnabled { get; }
         int FillDensity { get; }
