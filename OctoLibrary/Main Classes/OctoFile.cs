@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using SlicingBroker;
 using SlicingBroker;
 
 namespace Octobroker.Octo_Events
@@ -27,7 +23,6 @@ namespace Octobroker.Octo_Events
         public OctoFile(JObject payload, bool isFileAddedEvent = false)
         {
             //FileReadyForSlicing += OnFileReadyForSlicing;
-            //FileSliced += OnFileSliced;
             this.IsFileAddedEvent = isFileAddedEvent;
             ParsePayload(payload);
         }
@@ -95,13 +90,14 @@ namespace Octobroker.Octo_Events
 
         public  void DownloadAssociatedOnlineFile(string location, string downloadPath, OctoprintConnection connection)
         {
-            // if the file already exists in the download folder
-            if (File.Exists(downloadPath + FileName))
+            var currentFilePath = System.IO.Path.Combine(downloadPath , FileName);
+            // if the file already exists in the download folder then just set its information
+            if (File.Exists(currentFilePath))
             {
                 SetDownloadedFileLocalInformation(downloadPath);
                 return;
             }
-            
+            // else download the file from Octoprint then set its information
 
             JObject info = connection.Files.GetFileInfo(location, this.Path);
             JToken refs = info.Value<JToken>("refs");
@@ -111,7 +107,7 @@ namespace Octobroker.Octo_Events
             {
                 try
                 {
-                    myWebClient.DownloadFile(new Uri(downloadLink), downloadPath + FileName);
+                    myWebClient.DownloadFile(new Uri(downloadLink), currentFilePath);
                     SetDownloadedFileLocalInformation(downloadPath);
                 }
                 catch (Exception e)
@@ -124,7 +120,7 @@ namespace Octobroker.Octo_Events
 
         private void SetDownloadedFileLocalInformation(string downloadPath)
         {
-            LocalFilePath = downloadPath + FileName;
+            LocalFilePath = System.IO.Path.Combine(downloadPath, FileName);
             FileReadyForSlicing?.Invoke(this, new FileReadyForSlicingArgs(LocalFilePath));
         }
         /// <summary>

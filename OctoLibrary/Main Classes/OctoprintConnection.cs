@@ -83,8 +83,9 @@ namespace Octobroker
             {
                 //var tempPath = Path.GetTempPath();
                 var appPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var directoryInfo = Directory.CreateDirectory(Path.Combine(appPath, "Octobroker"));
-                applicationFolderPath = directoryInfo.FullName + "\\";
+                var directoryInfo = Directory.CreateDirectory(Path.Combine(appPath, "Octobroker\\"));
+                applicationFolderPath = directoryInfo.FullName;
+
             }
             return applicationFolderPath;
         }
