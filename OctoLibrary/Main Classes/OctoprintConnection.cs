@@ -341,43 +341,46 @@ namespace Octobroker
             }
         }
 
-
         private async Task WebsocketSyncAsync()
         {
-            string temporarystorage = "";
             var buffer = new byte[8096];
-            CancellationToken cancellation = CancellationToken.None;
-            //var awaiter = task.GetAwaiter();
-            WebSocketReceiveResult received;// = WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation).GetAwaiter().GetResult();
+            WebSocketReceiveResult received;
             while (!WebSocket.CloseStatus.HasValue && listening)
             {
-                received = WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation).GetAwaiter().GetResult();
+                received =await WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
                 string text = System.Text.Encoding.UTF8.GetString(buffer, 0, received.Count);
               
-                JObject obj = null;// = JObject(text);
-                //JObject.Parse(text);
+                JObject obj = null;
+                
                 try
                 {
                     obj = JObject.Parse(text);
                 }
                 catch
                 {
-                    temporarystorage += text;
-                    try
-                    {
-                        obj = JObject.Parse(temporarystorage);
-                        temporarystorage = "";
-                    }
-                    catch
-                    {
+                    continue;
 
-                    }
+                    //this is not relevant in our case, but it's important if the case changed, let's just leave it here
+                    #region how he handled a object being sent on parts, assembling them and then parsing
+
+                    /*
+                        temporarystorage += text;
+                        try
+                        {
+                            obj = JObject.Parse(temporarystorage);
+                            temporarystorage = "";
+                        }
+                        catch
+                        {
+
+                        }
+                    */
+
+                    #endregion
                 }
 
-                if (obj == null)
-                    continue;
-                JToken events = obj.Value<JToken>("event");
+                JToken events = obj?.Value<JToken>("event");
 
                 if (events == null)
                     continue;
@@ -392,28 +395,7 @@ namespace Octobroker
 
                 if (fileEvent.OctoFile.Type == "stl")
                 {
-                    try
-                    {
-                        var downloadpath = GetApplicationFolderPath();
-
-
-                        fileEvent.OctoFile.DownloadAssociatedOnlineFile("local", downloadpath, this);
-                       
-                        if (defaultSlicer != null)
-                        {
-                            await defaultSlicer.SliceAsync(fileEvent.OctoFile.LocalFilePath);
-                            fileEvent.OctoFile.SetSlicedInPlaceFileInfo();
-
-                            var uploadResponse =
-                                await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,
-                                    this);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                    
+                    await DownloadSliceAndUploadTheAddedFileAsync(fileEvent);
                 }
 
             }
@@ -422,7 +404,29 @@ namespace Octobroker
 
         }
 
+        private async Task DownloadSliceAndUploadTheAddedFileAsync(FileAddedEvent fileEvent)
+        {
+            try
+            {
+                var downloadpath = GetApplicationFolderPath();
 
 
+                fileEvent.OctoFile.DownloadAssociatedOnlineFile("local", downloadpath, this);
+
+                if (defaultSlicer != null)
+                {
+                    await defaultSlicer.SliceAsync(fileEvent.OctoFile.LocalFilePath);
+                    fileEvent.OctoFile.SetSlicedInPlaceFileInfo();
+
+                    var uploadResponse =
+                        await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,
+                            this);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
     }
 }
