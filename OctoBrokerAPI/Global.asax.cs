@@ -26,24 +26,24 @@ namespace OctoBrokerAPI
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-            await StartOctoprintConnection();
+            await StartOctoprintConnectionAsync();
         }
 
         private static OctoprintConnection octoconnection;
-        private static async Task StartOctoprintConnection()
+        private static async Task StartOctoprintConnectionAsync()
         {
              octoconnection = new OctoprintConnection(ip, api);
              octoconnection.InitializeDefaultSlicer(prusaSlicerPath);
-             await octoconnection.WebsocketStart();
+             await octoconnection.WebsocketStartAsync();
         }
 
-        public static async  Task<OctoprintConnection> GetOctoConnection()
+        public static async  Task<OctoprintConnection> GetOctoConnectionAsync()
         {
             if (octoconnection != null)
                 return octoconnection;
             else
             {
-                await StartOctoprintConnection();
+                await StartOctoprintConnectionAsync();
                 return octoconnection;
             }
                 

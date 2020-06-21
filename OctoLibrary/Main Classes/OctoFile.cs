@@ -177,7 +177,7 @@ namespace Octobroker.Octo_Events
         {
             if (Connection == null)
                 return "";
-            return await Connection.Files.UploadFile(SlicedFilePath, SlicedFileName, "");
+            return await Connection.Files.UploadFileAsync(SlicedFilePath, SlicedFileName, "");
         }
 
         private void OnFileReadyForSlicing(object sender, EventArgs args)

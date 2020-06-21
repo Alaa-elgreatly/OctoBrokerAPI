@@ -11,7 +11,7 @@ namespace SlicingBroker
         int FillDensity { get; }
         string SlicerPath { get; }
 
-        Task Slice(string localFilePath, string outputPath="");
+        Task SliceAsync(string localFilePath, string outputPath="");
 
     }
 }

@@ -107,7 +107,7 @@ namespace Octobroker
             //token = source.Token;
         }
 
-        private async Task ConnectEndPoint()
+        private async Task ConnectEndPointAsync()
         {
             var canceltoken = CancellationToken.None;
             WebSocket = new ClientWebSocket();
@@ -287,7 +287,7 @@ namespace Octobroker
             byte[] resp = webClient.UploadData(EndPoint + location, "POST", nfile);
             return strResponseValue;
         }
-        public async Task<string> PostMultipart(string fileData, string fileName, string location, string path = "")
+        public async Task<string> PostMultipartAsync(string fileData, string fileName, string location, string path = "")
         {
 
 
@@ -331,15 +331,15 @@ namespace Octobroker
         /// <summary>
         /// Starts the Websocket Thread.
         /// </summary>
-        public async Task WebsocketStart()
+        public async Task WebsocketStartAsync()
         {
             if (!listening)
             {
                 listening = true;
-                await ConnectEndPoint();
+                await ConnectEndPointAsync();
                 //Thread syncthread = new Thread(new ThreadStart(WebsocketSync));
                 //syncthread.Start();
-                await Task.Run(WebsocketSync);
+                await Task.Run(WebsocketSyncAsync);
             }
         }
 
@@ -352,7 +352,7 @@ namespace Octobroker
         //}
 
 
-        private async Task WebsocketSync()
+        private async Task WebsocketSyncAsync()
         {
             string temporarystorage = "";
             var buffer = new byte[8096];
@@ -415,7 +415,7 @@ namespace Octobroker
                         {
                             //await fileEvent.OctoFile.Slice(defaultSlicer, fileEvent.OctoFile.SlicedFilePath);
 
-                            await defaultSlicer.Slice(fileEvent.OctoFile.LocalFilePath);
+                            await defaultSlicer.SliceAsync(fileEvent.OctoFile.LocalFilePath);
                             fileEvent.OctoFile.SetSlicedInPlaceFileInfo();
                             var uploadResponse =
                                 await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,

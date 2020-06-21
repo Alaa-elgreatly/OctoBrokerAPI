@@ -53,7 +53,7 @@ namespace SlicingBroker
             return value;
         }
 
-        public async Task Slice(string localFilePath ,string outputPath = "")
+        public async Task SliceAsync(string localFilePath ,string outputPath = "")
         {
             //
             //if the path of the output gcode file is specified then slice and put it in that path (must be specified without .gcode extension)

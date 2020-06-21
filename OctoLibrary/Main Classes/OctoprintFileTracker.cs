@@ -303,7 +303,7 @@ namespace Octobroker
 
 
 
-        public async Task<string>  UploadFile(string path, string filename, string onlinepath = "", string location = "local", bool select = false, bool print = false)
+        public async Task<string>  UploadFileAsync(string path, string filename, string onlinepath = "", string location = "local", bool select = false, bool print = false)
         {
             string fileData = string.Empty;
             fileData = System.IO.File.ReadAllText(path);
@@ -333,7 +333,7 @@ namespace Octobroker
 #else
             packagestring = fileData;
 #endif
-            string s = await Connection.PostMultipart(packagestring,filename, "api/files/" + location, onlinepath);
+            string s = await Connection.PostMultipartAsync(packagestring,filename, "api/files/" + location, onlinepath);
             return s;
         }
     }
