@@ -71,6 +71,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GcodeToMesh\GcodeToMesh.csproj">
+      <Project>{be8804d3-4d55-4603-a6de-6d462f6b3bba}</Project>
+      <Name>GcodeToMesh</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SlicingBroker\SlicingBroker.csproj">
       <Project>{699f76c3-e890-4d7a-8e1f-d37f999b9f6b}</Project>
       <Name>SlicingBroker</Name>

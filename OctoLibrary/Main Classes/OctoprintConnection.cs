@@ -13,6 +13,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Octobroker.Octo_Events;
 using SlicingBroker;
+using GcodeToMesh;
+using GcodeToMesh.GcodeClasses;
 
 namespace Octobroker
 
@@ -60,6 +62,13 @@ namespace Octobroker
         /// Reads the Hardware state, Temperatures and other information.
         /// </summary>
         public OctoprintPrinterTracker Printers { get; set; }
+
+        private GCodeHandler gcodeHandler;
+
+        public GCodeHandler GetGCodeHandler()
+        {
+            return gcodeHandler ?? (gcodeHandler = new GCodeHandler());
+        }
 
         internal ISlicerBroker defaultSlicer { get; set; }
 
@@ -420,6 +429,11 @@ namespace Octobroker
                     var uploadResponse =
                         await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,
                             this);
+
+
+                    // create mesh from gcode
+                    var gcodehandler = GetGCodeHandler();
+                    gcodehandler.LoadObjectFolder(fileEvent.OctoFile.SlicedFilePath, downloadpath);
                 }
             }
             catch (Exception e)

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoLibrary", "OctoLibrary\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlicingBroker", "SlicingBroker\SlicingBroker.csproj", "{699F76C3-E890-4D7A-8E1F-D37F999B9F6B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GcodeToMesh", "GcodeToMesh\GcodeToMesh.csproj", "{BE8804D3-4D55-4603-A6DE-6D462F6B3BBA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{699F76C3-E890-4D7A-8E1F-D37F999B9F6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{699F76C3-E890-4D7A-8E1F-D37F999B9F6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{699F76C3-E890-4D7A-8E1F-D37F999B9F6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE8804D3-4D55-4603-A6DE-6D462F6B3BBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE8804D3-4D55-4603-A6DE-6D462F6B3BBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE8804D3-4D55-4603-A6DE-6D462F6B3BBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE8804D3-4D55-4603-A6DE-6D462F6B3BBA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
