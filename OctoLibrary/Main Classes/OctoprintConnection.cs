@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
@@ -426,7 +427,7 @@ namespace Octobroker
                     await defaultSlicer.SliceAsync(fileEvent.OctoFile.LocalFilePath);
                     fileEvent.OctoFile.SetSlicedInPlaceFileInfo();
 
-                    var uploadResponse =
+                    var gcodeUploadResponse =
                         await fileEvent.OctoFile.UploadToOctoprintAsync(fileEvent.OctoFile.SlicedFilePath,
                             this);
 
@@ -434,6 +435,11 @@ namespace Octobroker
                     // create mesh from gcode
                     var gcodehandler = GetGCodeHandler();
                     gcodehandler.LoadObjectFolder(fileEvent.OctoFile.SlicedFilePath, downloadpath);
+
+                    //var meshpath = downloadpath+ fileEvent.OctoFile.SlicedFileName + ".mesh?";
+                    //var meshUploadResponse =
+                    //    await fileEvent.OctoFile.UploadToOctoprintAsync(meshpath,
+                    //        this);
                 }
             }
             catch (Exception e)
